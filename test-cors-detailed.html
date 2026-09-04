@@ -1,124 +1,87 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tests CORS Détaillés - Grist Sync Connector</title>
+    <meta charset="utf-8">
+    <title>Test CORS Détaillé - Grist Sync</title>
+    <script src="https://docs.getgrist.com/grist-plugin-api.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-        
         .container {
-            max-width: 1200px;
+            max-width: 900px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-        
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
             padding: 30px;
-            text-align: center;
         }
-        
-        .header h1 {
+        h1 {
+            color: #333;
             margin-bottom: 10px;
-            font-size: 2em;
+            font-size: 28px;
         }
-        
-        .content {
-            padding: 30px;
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
         }
-        
-        .section {
-            margin-bottom: 40px;
-        }
-        
-        .section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #667eea;
-            font-size: 1.5em;
-        }
-        
-        .test-group {
+        .test-section {
+            margin-bottom: 25px;
+            padding: 20px;
             background: #f8f9fa;
             border-left: 4px solid #667eea;
-            padding: 20px;
-            margin-bottom: 20px;
             border-radius: 8px;
         }
-        
-        .test-title {
-            font-weight: bold;
+        .test-section h2 {
             color: #333;
+            font-size: 16px;
             margin-bottom: 15px;
-            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
-        
-        .input-group {
-            margin-bottom: 15px;
+        .test-label {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            min-width: 35px;
+            text-align: center;
         }
-        
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-        }
-        
-        input {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-        
         button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #667eea;
             color: white;
             border: none;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 6px;
             cursor: pointer;
+            font-size: 14px;
             font-weight: 600;
-            font-size: 1em;
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background 0.3s;
             margin-right: 10px;
             margin-bottom: 10px;
         }
-        
         button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+            background: #764ba2;
         }
-        
-        button:active {
-            transform: translateY(0);
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
         }
-        
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
         .result {
             background: white;
             border: 1px solid #ddd;
@@ -126,406 +89,446 @@
             padding: 15px;
             margin-top: 15px;
             font-family: 'Courier New', monospace;
-            font-size: 0.85em;
+            font-size: 12px;
             max-height: 300px;
             overflow-y: auto;
-            white-space: pre-wrap;
             word-break: break-all;
         }
-        
-        .result.success {
-            border-left: 4px solid #28a745;
-            background: #f0fdf4;
-            color: #15803d;
-        }
-        
         .result.error {
-            border-left: 4px solid #dc3545;
-            background: #fdf0f0;
-            color: #991b1b;
+            background: #fee;
+            border-color: #f88;
+            color: #c33;
         }
-        
-        .result.loading {
-            border-left: 4px solid #ffc107;
-            background: #fffbf0;
-            color: #92400e;
+        .result.success {
+            background: #efe;
+            border-color: #8f8;
+            color: #333;
         }
-        
-        .status-icon {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            vertical-align: middle;
+        .status {
+            padding: 10px;
+            border-radius: 6px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 500;
         }
-        
-        .status-icon.success {
-            background: #28a745;
+        .status.loading {
+            background: #e7f3ff;
+            color: #0066cc;
         }
-        
-        .status-icon.error {
-            background: #dc3545;
+        .status.error {
+            background: #fee;
+            color: #c33;
         }
-        
-        .status-icon.loading {
-            background: #ffc107;
-            animation: pulse 1s infinite;
+        .status.success {
+            background: #efe;
+            color: #333;
         }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
+        .input-group {
+            margin: 10px 0;
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
-        
+        .input-group label {
+            font-weight: 600;
+            color: #333;
+            min-width: 120px;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+        .separator {
+            height: 1px;
+            background: #ddd;
+            margin: 30px 0;
+        }
         .info-box {
             background: #e7f3ff;
-            border-left: 4px solid #2196F3;
+            border-left: 4px solid #0066cc;
             padding: 15px;
-            margin-bottom: 20px;
             border-radius: 6px;
-            color: #1976D2;
+            margin-bottom: 20px;
+            font-size: 13px;
+            color: #333;
         }
-        
-        .warning-box {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 6px;
-            color: #856404;
+        .info-box strong {
+            color: #0066cc;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="header">
-            <h1>🔍 Tests CORS Détaillés</h1>
-            <p>Grist Sync Connector - Diagnostic complet</p>
-        </div>
+        <h1>🧪 Test CORS Détaillé - Grist Sync</h1>
+        <p class="subtitle">Tests pour contourner les blocages CORS avec Grist API</p>
         
-        <div class="content">
-            <!-- Section Tests Manuels -->
-            <div class="section">
-                <h2>📋 Tests Manuels (Clé API)</h2>
-                
-                <div class="info-box">
-                    ℹ️ Ces tests vous permettent de vérifier votre accès API manuellement avec une clé API.
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Configuration</div>
-                    <div class="input-group">
-                        <label for="docId">Doc ID (ex: 97yiWFtwrJMV):</label>
-                        <input type="text" id="docId" placeholder="Entrez l'ID du document">
-                    </div>
-                    <div class="input-group">
-                        <label for="apiKey">Clé API:</label>
-                        <input type="password" id="apiKey" placeholder="Entrez votre clé API">
-                    </div>
-                    <div class="input-group">
-                        <label for="baseUrl">URL de base (ex: https://grist.numerique.gouv.fr):</label>
-                        <input type="text" id="baseUrl" placeholder="https://grist.numerique.gouv.fr">
-                    </div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 1️⃣ : Preflight OPTIONS</div>
-                    <button onclick="testPreflight()">🚀 Lancer le test Preflight</button>
-                    <div id="preflightResult" class="result"></div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 2️⃣ : Récupérer infos du document (Clé API)</div>
-                    <button onclick="testDocInfo()">🚀 Lancer le test Doc Info</button>
-                    <div id="docInfoResult" class="result"></div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 3️⃣ : Récupérer les records (Clé API)</div>
-                    <button onclick="testRecords()">🚀 Lancer le test Records</button>
-                    <div id="recordsResult" class="result"></div>
-                </div>
+        <div class="info-box">
+            <strong>ℹ️ Info :</strong> Ce widget teste différentes approches pour communiquer avec l'API Grist.
+            Les tests 1-3 utilisent une clé API manuelle (avec CORS).
+            Les tests 4-7 utilisent <code>getAccessToken()</code> (sans clé API visible).
+        </div>
+
+        <!-- TEST MANUELS AVEC CLÉ API -->
+        <div class="test-section">
+            <h2><span class="test-label">CONFIG</span> Configuration de la clé API</h2>
+            <div class="input-group">
+                <label for="apiKey">Clé API :</label>
+                <input type="password" id="apiKey" placeholder="5f9ac95b81d77848163fc14833bd429ccdf2fe8d">
             </div>
-            
-            <!-- Section Tests avec getAccessToken() -->
-            <div class="section">
-                <h2>🔐 Tests avec getAccessToken() (Widget Grist)</h2>
-                
-                <div class="warning-box">
-                    ⚠️ Ces tests nécessitent que cette page soit chargée COMME UN WIDGET GRIST !
-                    <br><br>
-                    Pour utiliser ces tests, ajoutez cette URL comme Custom Widget dans Grist:
-                    <br><strong>https://gristgouv.github.io/grist-sync-connector/test-cors-detailed.html</strong>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 4️⃣ : Obtenir un Access Token (méthode widget)</div>
-                    <button onclick="testGetAccessToken()">🚀 Lancer le test Access Token</button>
-                    <div id="accessTokenResult" class="result"></div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 5️⃣ : Récupérer infos du document (via Access Token)</div>
-                    <button onclick="testDocInfoWithToken()">🚀 Lancer le test Doc Info avec Token</button>
-                    <div id="docInfoTokenResult" class="result"></div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 6️⃣ : Récupérer les records (via Access Token)</div>
-                    <button onclick="testRecordsWithToken()">🚀 Lancer le test Records avec Token</button>
-                    <div id="recordsTokenResult" class="result"></div>
-                </div>
-                
-                <div class="test-group">
-                    <div class="test-title">Test 7️⃣ : Lister toutes les tables (via Access Token)</div>
-                    <button onclick="testTablesWithToken()">🚀 Lancer le test Tables avec Token</button>
-                    <div id="tablesTokenResult" class="result"></div>
-                </div>
+            <div class="input-group">
+                <label for="docId">ID Document :</label>
+                <input type="text" id="docId" placeholder="97yiWFtwrJMV" value="97yiWFtwrJMV">
             </div>
-            
-            <!-- Résumé -->
-            <div class="section">
-                <h2>📊 Résumé des résultats</h2>
-                <div id="summary" class="test-group">
-                    <p>Lancez les tests pour voir le résumé ici...</p>
-                </div>
+            <div class="input-group">
+                <label for="baseUrl">URL Grist :</label>
+                <input type="text" id="baseUrl" placeholder="https://grist.numerique.gouv.fr" value="https://grist.numerique.gouv.fr">
             </div>
+            <button onclick="saveConfig()">💾 Sauvegarder</button>
+            <div id="configStatus"></div>
+        </div>
+
+        <!-- TEST 1: PREFLIGHT OPTIONS -->
+        <div class="test-section">
+            <h2><span class="test-label">1️⃣</span> Test Preflight OPTIONS</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">Vérifie si le serveur autorise les requêtes CORS</p>
+            <button onclick="testPreflight()">Lancer le test</button>
+            <div id="test1Result"></div>
+        </div>
+
+        <!-- TEST 2: GET DOCUMENT INFO (API KEY) -->
+        <div class="test-section">
+            <h2><span class="test-label">2️⃣</span> Récupérer infos du document (clé API)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">GET /api/docs/{docId} avec Authorization header</p>
+            <button onclick="testDocInfoWithApiKey()">Lancer le test</button>
+            <div id="test2Result"></div>
+        </div>
+
+        <!-- TEST 3: GET RECORDS (API KEY) -->
+        <div class="test-section">
+            <h2><span class="test-label">3️⃣</span> Récupérer les records (clé API)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">GET /api/docs/{docId}/tables/Table1/records avec Authorization header</p>
+            <button onclick="testRecordsWithApiKey()">Lancer le test</button>
+            <div id="test3Result"></div>
+        </div>
+
+        <div class="separator"></div>
+
+        <!-- TEST 4: GET ACCESS TOKEN -->
+        <div class="test-section">
+            <h2><span class="test-label">4️⃣</span> Obtenir un Access Token</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">
+                <strong>🔐 Cette approche ne nécessite PAS de clé API !</strong>
+                Utilise <code>grist.getAccessToken()</code> qui récupère un token directement depuis Grist.
+            </p>
+            <button onclick="testGetAccessToken()">Lancer le test</button>
+            <div id="test4Result"></div>
+        </div>
+
+        <!-- TEST 5: GET DOCUMENT INFO (TOKEN) -->
+        <div class="test-section">
+            <h2><span class="test-label">5️⃣</span> Récupérer infos du document (Access Token)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">GET /api/docs/{docId}?auth=TOKEN (pas d'Authorization header)</p>
+            <button onclick="testDocInfoWithToken()">Lancer le test</button>
+            <button class="secondary" onclick="testGetAccessToken(); setTimeout(testDocInfoWithToken, 500);">1️⃣ Puis 5️⃣ (auto)</button>
+            <div id="test5Result"></div>
+        </div>
+
+        <!-- TEST 6: GET RECORDS (TOKEN) -->
+        <div class="test-section">
+            <h2><span class="test-label">6️⃣</span> Récupérer les records (Access Token)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">GET /api/docs/{docId}/tables/Table1/records?auth=TOKEN</p>
+            <button onclick="testRecordsWithToken()">Lancer le test</button>
+            <button class="secondary" onclick="testGetAccessToken(); setTimeout(testRecordsWithToken, 500);">1️⃣ Puis 6️⃣ (auto)</button>
+            <div id="test6Result"></div>
+        </div>
+
+        <!-- TEST 7: LIST TABLES (TOKEN) -->
+        <div class="test-section">
+            <h2><span class="test-label">7️⃣</span> Lister les tables (Access Token)</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 10px;">GET /api/docs/{docId}/tables?auth=TOKEN</p>
+            <button onclick="testListTablesWithToken()">Lancer le test</button>
+            <button class="secondary" onclick="testGetAccessToken(); setTimeout(testListTablesWithToken, 500);">1️⃣ Puis 7️⃣ (auto)</button>
+            <div id="test7Result"></div>
         </div>
     </div>
-    
-    <script src="https://docs.getgrist.com/grist-api.js"></script>
+
     <script>
-        let testResults = {};
-        
-        function setStatus(elementId, status, message) {
-            const element = document.getElementById(elementId);
-            element.className = `result ${status}`;
-            element.textContent = message;
-            
-            // Tracker les résultats
-            testResults[elementId] = {status, message};
-            updateSummary();
-        }
-        
-        function updateSummary() {
-            const summary = document.getElementById('summary');
-            let html = '<strong>État des tests:</strong><br><br>';
-            
-            Object.entries(testResults).forEach(([id, result]) => {
-                const icon = result.status === 'success' ? '✅' : result.status === 'error' ? '❌' : '⏳';
-                html += `${icon} ${id}: ${result.status}<br>`;
-            });
-            
-            summary.innerHTML = html;
-        }
-        
-        // ======================================
-        // TESTS MANUELS (Clé API)
-        // ======================================
-        
-        async function testPreflight() {
-            const baseUrl = document.getElementById('baseUrl').value;
+        // Variable globale pour stocker le token
+        let currentToken = null;
+
+        // Initialiser Grist
+        grist.ready();
+
+        // Sauvegarder la config
+        function saveConfig() {
+            const apiKey = document.getElementById('apiKey').value;
             const docId = document.getElementById('docId').value;
+            const baseUrl = document.getElementById('baseUrl').value;
             
-            if (!baseUrl || !docId) {
-                setStatus('preflightResult', 'error', '❌ Veuillez remplir l\'URL de base et l\'ID du document');
+            if (!apiKey || !docId) {
+                setStatus('configStatus', 'Erreur : remplissez tous les champs', 'error');
                 return;
             }
+
+            localStorage.setItem('gristApiKey', apiKey);
+            localStorage.setItem('gristDocId', docId);
+            localStorage.setItem('gristBaseUrl', baseUrl);
             
-            setStatus('preflightResult', 'loading', '⏳ Test en cours...');
-            
-            try {
-                const response = await fetch(`${baseUrl}/o/docs/api/docs/${docId}/tables`, {
-                    method: 'OPTIONS',
-                    headers: {
-                        'Access-Control-Request-Method': 'GET',
-                        'Access-Control-Request-Headers': 'authorization'
-                    }
-                });
-                
+            setStatus('configStatus', '✅ Configuration sauvegardée', 'success');
+        }
+
+        // Récupérer la config
+        function getConfig() {
+            return {
+                apiKey: localStorage.getItem('gristApiKey') || document.getElementById('apiKey').value,
+                docId: localStorage.getItem('gristDocId') || document.getElementById('docId').value,
+                baseUrl: localStorage.getItem('gristBaseUrl') || document.getElementById('baseUrl').value
+            };
+        }
+
+        // Afficher le statut
+        function setStatus(elementId, message, type) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        // Afficher le résultat
+        function setResult(elementId, data, isError = false) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
+            el.innerHTML = `<div class="result ${isError ? 'error' : 'success'}">${JSON.stringify(data, null, 2)}</div>`;
+        }
+
+        // TEST 1: Preflight OPTIONS
+        function testPreflight() {
+            const config = getConfig();
+            setStatus('test1Result', '⏳ Test en cours...', 'loading');
+
+            fetch(`${config.baseUrl}/api/docs/${config.docId}?auth=test`, {
+                method: 'OPTIONS',
+                headers: {}
+            })
+            .then(response => {
                 const corsHeaders = {
                     'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin') || 'N/A',
                     'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods') || 'N/A',
                     'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers') || 'N/A'
                 };
-                
-                const message = `✅ Preflight réussi !
-                
-Code HTTP: ${response.status}
-Headers CORS:
-${Object.entries(corsHeaders).map(([k, v]) => `  ${k}: ${v}`).join('\n')}`;
-                
-                setStatus('preflightResult', response.status === 200 ? 'success' : 'error', message);
-            } catch (err) {
-                setStatus('preflightResult', 'error', `❌ Erreur: ${err.message}`);
-            }
+                setResult('test1Result', {
+                    message: '✅ Preflight OK',
+                    statusCode: response.status,
+                    corsHeaders: corsHeaders
+                });
+            })
+            .catch(error => {
+                setResult('test1Result', {
+                    error: '❌ Erreur Preflight',
+                    message: error.message
+                }, true);
+            });
         }
-        
-        async function testDocInfo() {
-            const baseUrl = document.getElementById('baseUrl').value;
-            const docId = document.getElementById('docId').value;
-            const apiKey = document.getElementById('apiKey').value;
-            
-            if (!baseUrl || !docId || !apiKey) {
-                setStatus('docInfoResult', 'error', '❌ Veuillez remplir tous les champs');
+
+        // TEST 2: GET Document Info avec clé API (Authorization header)
+        function testDocInfoWithApiKey() {
+            const config = getConfig();
+            setStatus('test2Result', '⏳ Test en cours...', 'loading');
+
+            fetch(`${config.baseUrl}/api/docs/${config.docId}`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResult('test2Result', {
+                    statusCode: 200,
+                    message: '✅ Récupération document OK',
+                    data: data
+                });
+            })
+            .catch(error => {
+                setResult('test2Result', {
+                    error: '❌ Erreur',
+                    message: error.message,
+                    tip: 'Vérifiez que la clé API est correcte et que le serveur Grist autorise les en-têtes Authorization'
+                }, true);
+            });
+        }
+
+        // TEST 3: GET Records avec clé API
+        function testRecordsWithApiKey() {
+            const config = getConfig();
+            setStatus('test3Result', '⏳ Test en cours...', 'loading');
+
+            fetch(`${config.baseUrl}/api/docs/${config.docId}/tables/Table1/records`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${config.apiKey}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResult('test3Result', {
+                    statusCode: 200,
+                    message: '✅ Récupération records OK',
+                    recordCount: data.records ? data.records.length : 0,
+                    data: data
+                });
+            })
+            .catch(error => {
+                setResult('test3Result', {
+                    error: '❌ Erreur',
+                    message: error.message,
+                    tip: 'Vérifiez l\'accès à la table Table1'
+                }, true);
+            });
+        }
+
+        // TEST 4: GET Access Token
+        function testGetAccessToken() {
+            setStatus('test4Result', '⏳ Test en cours...', 'loading');
+
+            grist.getAccessToken({ readOnly: false })
+                .then(tokenResult => {
+                    currentToken = tokenResult.token;
+                    setResult('test4Result', {
+                        message: '✅ Access Token récupéré !',
+                        token: currentToken.substring(0, 50) + '...',
+                        tokenLength: currentToken.length,
+                        note: 'Ce token peut maintenant être utilisé via le paramètre ?auth='
+                    });
+                })
+                .catch(error => {
+                    setResult('test4Result', {
+                        error: '❌ Erreur',
+                        message: error.message || 'Impossible de récupérer l\'access token',
+                        tip: 'Assurez-vous que grist.ready() a été appelé correctement'
+                    }, true);
+                });
+        }
+
+        // TEST 5: GET Document Info avec token
+        function testDocInfoWithToken() {
+            if (!currentToken) {
+                setResult('test5Result', {
+                    error: '❌ Erreur',
+                    message: 'Pas de token disponible',
+                    tip: 'Lancez d\'abord le Test 4️⃣ pour obtenir un token'
+                }, true);
                 return;
             }
-            
-            setStatus('docInfoResult', 'loading', '⏳ Récupération des infos du document...');
-            
-            try {
-                const url = `${baseUrl}/o/docs/api/docs/${docId}?api_key=${encodeURIComponent(apiKey)}`;
-                const response = await fetch(url, {method: 'GET'});
-                const data = await response.json();
-                
-                if (response.ok) {
-                    setStatus('docInfoResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
-                } else {
-                    setStatus('docInfoResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
-                }
-            } catch (err) {
-                setStatus('docInfoResult', 'error', `❌ Erreur réseau: ${err.message}`);
-            }
+
+            const config = getConfig();
+            setStatus('test5Result', '⏳ Test en cours...', 'loading');
+
+            fetch(`${config.baseUrl}/api/docs/${config.docId}?auth=${currentToken}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResult('test5Result', {
+                    statusCode: 200,
+                    message: '✅ Récupération document OK (avec token)',
+                    data: data
+                });
+            })
+            .catch(error => {
+                setResult('test5Result', {
+                    error: '❌ Erreur',
+                    message: error.message,
+                    tip: 'Le token peut avoir expiré ou être invalide'
+                }, true);
+            });
         }
-        
-        async function testRecords() {
-            const baseUrl = document.getElementById('baseUrl').value;
-            const docId = document.getElementById('docId').value;
-            const apiKey = document.getElementById('apiKey').value;
-            
-            if (!baseUrl || !docId || !apiKey) {
-                setStatus('recordsResult', 'error', '❌ Veuillez remplir tous les champs');
+
+        // TEST 6: GET Records avec token
+        function testRecordsWithToken() {
+            if (!currentToken) {
+                setResult('test6Result', {
+                    error: '❌ Erreur',
+                    message: 'Pas de token disponible',
+                    tip: 'Lancez d\'abord le Test 4️⃣ pour obtenir un token'
+                }, true);
                 return;
             }
-            
-            setStatus('recordsResult', 'loading', '⏳ Récupération des records...');
-            
-            try {
-                const url = `${baseUrl}/o/docs/api/docs/${docId}/tables/Table1/records?api_key=${encodeURIComponent(apiKey)}`;
-                const response = await fetch(url, {method: 'GET'});
-                const data = await response.json();
-                
-                if (response.ok) {
-                    setStatus('recordsResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
-                } else {
-                    setStatus('recordsResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
-                }
-            } catch (err) {
-                setStatus('recordsResult', 'error', `❌ Erreur réseau: ${err.message}`);
-            }
-        }
-        
-        // ======================================
-        // TESTS AVEC getAccessToken()
-        // ======================================
-        
-        async function testGetAccessToken() {
-            setStatus('accessTokenResult', 'loading', '⏳ Initialisation widget Grist...');
-            
-            try {
-                // Attendre que grist soit disponible
-                if (!window.grist) {
-                    throw new Error('grist.widget non disponible - cette page doit être chargée comme un widget Grist');
-                }
-                
-                const {token, baseUrl} = await grist.docApi.getAccessToken({readOnly: false});
-                
-                const message = `✅ Token obtenu avec succès!
 
-Token (premiers 50 chars): ${token.substring(0, 50)}...
-Base URL: ${baseUrl}
+            const config = getConfig();
+            setStatus('test6Result', '⏳ Test en cours...', 'loading');
 
-ℹ️ Ce token peut être utilisé pour:
-- Récupérer les données du document
-- Créer/modifier les records
-- Accéder à la table courante`;
-                
-                setStatus('accessTokenResult', 'success', message);
-                
-                // Sauvegarder le token pour les autres tests
-                window.lastToken = token;
-                window.lastBaseUrl = baseUrl;
-            } catch (err) {
-                setStatus('accessTokenResult', 'error', `❌ Erreur: ${err.message}\n\nAssurez-vous que cette page est chargée comme un Custom Widget dans Grist.`);
-            }
+            fetch(`${config.baseUrl}/api/docs/${config.docId}/tables/Table1/records?auth=${currentToken}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResult('test6Result', {
+                    statusCode: 200,
+                    message: '✅ Récupération records OK (avec token)',
+                    recordCount: data.records ? data.records.length : 0,
+                    data: data
+                });
+            })
+            .catch(error => {
+                setResult('test6Result', {
+                    error: '❌ Erreur',
+                    message: error.message,
+                    tip: 'Le token peut avoir expiré ou la table n\'existe pas'
+                }, true);
+            });
         }
-        
-        async function testDocInfoWithToken() {
-            setStatus('docInfoTokenResult', 'loading', '⏳ Récupération infos document...');
-            
-            try {
-                if (!window.lastToken || !window.lastBaseUrl) {
-                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
-                }
-                
-                const url = `${window.lastBaseUrl}/tables?auth=${encodeURIComponent(window.lastToken)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    setStatus('docInfoTokenResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
-                } else {
-                    setStatus('docInfoTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
-                }
-            } catch (err) {
-                setStatus('docInfoTokenResult', 'error', `❌ Erreur: ${err.message}`);
+
+        // TEST 7: LIST Tables avec token
+        function testListTablesWithToken() {
+            if (!currentToken) {
+                setResult('test7Result', {
+                    error: '❌ Erreur',
+                    message: 'Pas de token disponible',
+                    tip: 'Lancez d\'abord le Test 4️⃣ pour obtenir un token'
+                }, true);
+                return;
             }
+
+            const config = getConfig();
+            setStatus('test7Result', '⏳ Test en cours...', 'loading');
+
+            fetch(`${config.baseUrl}/api/docs/${config.docId}/tables?auth=${currentToken}`, {
+                method: 'GET'
+            })
+            .then(response => response.json())
+            .then(data => {
+                setResult('test7Result', {
+                    statusCode: 200,
+                    message: '✅ Listing tables OK (avec token)',
+                    tableCount: data.tables ? data.tables.length : 0,
+                    tables: data.tables ? data.tables.map(t => t.name) : [],
+                    data: data
+                });
+            })
+            .catch(error => {
+                setResult('test7Result', {
+                    error: '❌ Erreur',
+                    message: error.message,
+                    tip: 'Vérifiez vos permissions d\'accès'
+                }, true);
+            });
         }
-        
-        async function testRecordsWithToken() {
-            setStatus('recordsTokenResult', 'loading', '⏳ Récupération des records...');
-            
-            try {
-                if (!window.lastToken || !window.lastBaseUrl) {
-                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
-                }
-                
-                // Essayer de récupérer les records de la table courante
-                const url = `${window.lastBaseUrl}/records?auth=${encodeURIComponent(window.lastToken)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const recordCount = data.records ? data.records.length : 0;
-                    const message = `✅ Succès! ${recordCount} records récupérés\n\n${JSON.stringify(data, null, 2)}`;
-                    setStatus('recordsTokenResult', 'success', message);
-                } else {
-                    setStatus('recordsTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
-                }
-            } catch (err) {
-                setStatus('recordsTokenResult', 'error', `❌ Erreur: ${err.message}`);
-            }
-        }
-        
-        async function testTablesWithToken() {
-            setStatus('tablesTokenResult', 'loading', '⏳ Récupération des tables...');
-            
-            try {
-                if (!window.lastToken || !window.lastBaseUrl) {
-                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
-                }
-                
-                const url = `${window.lastBaseUrl}/tables?auth=${encodeURIComponent(window.lastToken)}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (response.ok) {
-                    const tableCount = data.tables ? data.tables.length : 0;
-                    const tableNames = data.tables ? data.tables.map(t => t.id).join(', ') : 'N/A';
-                    const message = `✅ Succès! ${tableCount} table(s) trouvée(s)\n\nTables: ${tableNames}\n\n${JSON.stringify(data, null, 2)}`;
-                    setStatus('tablesTokenResult', 'success', message);
-                } else {
-                    setStatus('tablesTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
-                }
-            } catch (err) {
-                setStatus('tablesTokenResult', 'error', `❌ Erreur: ${err.message}`);
-            }
-        }
-        
-        // Initialiser quand la page charge
+
+        // Charger la config au démarrage
         window.addEventListener('load', () => {
-            console.log('Tests CORS chargés. Grist disponible?', !!window.grist);
+            const config = getConfig();
+            if (config.apiKey) {
+                document.getElementById('apiKey').value = config.apiKey;
+            }
+            if (config.docId) {
+                document.getElementById('docId').value = config.docId;
+            }
+            if (config.baseUrl) {
+                document.getElementById('baseUrl').value = config.baseUrl;
+            }
         });
     </script>
 </body>

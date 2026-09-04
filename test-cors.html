@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Test CORS - Grist Sync Connector</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 10px;
+        }
+        h2 {
+            color: #555;
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.25);
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-right: 10px;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button.secondary {
+            background: #6c757d;
+        }
+        button.secondary:hover {
+            background: #5a6268;
+        }
+        button.danger {
+            background: #dc3545;
+        }
+        button.danger:hover {
+            background: #c82333;
+        }
+        .results {
+            background: #f9f9f9;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 4px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .result-item {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+        }
+        .result-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .status-success {
+            color: #28a745;
+            font-weight: bold;
+        }
+        .status-error {
+            color: #dc3545;
+            font-weight: bold;
+        }
+        .status-warning {
+            color: #ffc107;
+            font-weight: bold;
+        }
+        .status-info {
+            color: #17a2b8;
+            font-weight: bold;
+        }
+        .headers-box {
+            background: white;
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .url-display {
+            background: #f0f0f0;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+            border: 1px solid #ddd;
+        }
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Test CORS - Grist Sync Connector</h1>
+        
+        <div class="info-box">
+            <strong>ℹ️ Objectif :</strong> Tester les réponses CORS de l'API Grist avec différents paramètres d'authentification.
+            Ouvre la console (F12 → Réseau) pour voir les détails complets du préflight OPTIONS.
+        </div>
+
+        <h2>Configuration</h2>
+        
+        <div class="form-group">
+            <label for="gristUrl">URL de l'instance Grist :</label>
+            <input type="text" id="gristUrl" placeholder="https://grist.numerique.gouv.fr" value="https://grist.numerique.gouv.fr">
+        </div>
+
+        <div class="form-group">
+            <label for="docId">Doc ID :</label>
+            <input type="text" id="docId" placeholder="97yiWFtwrJMV" value="97yiWFtwrJMV">
+        </div>
+
+        <div class="form-group">
+            <label for="tableName">Nom de la table :</label>
+            <input type="text" id="tableName" placeholder="Table1" value="Table1">
+        </div>
+
+        <div class="form-group">
+            <label for="apiKey">Clé API (compte de service) :</label>
+            <input type="password" id="apiKey" placeholder="Votre clé API...">
+        </div>
+
+        <h2>Tests</h2>
+        
+        <button onclick="testPreflight()">1️⃣ Test Preflight OPTIONS</button>
+        <button class="secondary" onclick="testQueryParam('api_key')">2️⃣ Test ?api_key=</button>
+        <button class="secondary" onclick="testQueryParam('auth')">3️⃣ Test ?auth=</button>
+        <button class="danger" onclick="clearResults()">🗑️ Effacer les résultats</button>
+
+        <h2>Résultats</h2>
+        <div class="results" id="results">
+            <p style="color: #999; text-align: center; padding: 40px 0;">Les résultats des tests apparaîtront ici...</p>
+        </div>
+    </div>
+
+    <script>
+        const resultsDiv = document.getElementById('results');
+
+        function getConfig() {
+            return {
+                gristUrl: document.getElementById('gristUrl').value.trim(),
+                docId: document.getElementById('docId').value.trim(),
+                tableName: document.getElementById('tableName').value.trim(),
+                apiKey: document.getElementById('apiKey').value.trim()
+            };
+        }
+
+        function buildApiUrl(config, paramName = null) {
+            const baseUrl = `${config.gristUrl}/api/docs/${config.docId}/tables/${config.tableName}/records`;
+            if (paramName && config.apiKey) {
+                return `${baseUrl}?${paramName}=${encodeURIComponent(config.apiKey)}`;
+            }
+            return baseUrl;
+        }
+
+        function addResult(title, status, statusClass, details = {}) {
+            if (resultsDiv.querySelector('p')) {
+                resultsDiv.innerHTML = '';
+            }
+
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
+
+            let html = `<div class="result-title">${title}</div>`;
+            html += `<div class="status-${statusClass}">Status: ${status}</div>`;
+
+            if (details.url) {
+                html += `<strong>URL (clé masquée) :</strong><div class="url-display">${maskApiKey(details.url)}</div>`;
+            }
+
+            if (details.corsHeaders) {
+                html += `<strong>Headers CORS de réponse :</strong><div class="headers-box">${details.corsHeaders}</div>`;
+            }
+
+            if (details.httpStatus) {
+                html += `<div><strong>HTTP Status :</strong> ${details.httpStatus}</div>`;
+            }
+
+            if (details.responseText) {
+                html += `<strong>Réponse :</strong><div class="headers-box">${details.responseText}</div>`;
+            }
+
+            if (details.error) {
+                html += `<strong>Erreur :</strong><div class="headers-box">${details.error}</div>`;
+            }
+
+            resultItem.innerHTML = html;
+            resultsDiv.insertBefore(resultItem, resultsDiv.firstChild);
+        }
+
+        function maskApiKey(url) {
+            return url.replace(/([?&](api_key|auth)=)[^&]*/g, '$1***CLEF_MASQUEE***');
+        }
+
+        function extractCorsHeaders(response) {
+            const corsHeaders = {};
+            const corsHeaderNames = [
+                'access-control-allow-origin',
+                'access-control-allow-methods',
+                'access-control-allow-headers',
+                'access-control-allow-credentials',
+                'access-control-expose-headers',
+                'access-control-max-age'
+            ];
+
+            corsHeaderNames.forEach(header => {
+                const value = response.headers.get(header);
+                if (value) {
+                    corsHeaders[header] = value;
+                }
+            });
+
+            return corsHeaders;
+        }
+
+        async function testPreflight() {
+            const config = getConfig();
+            if (!config.gristUrl || !config.docId || !config.tableName || !config.apiKey) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            const url = buildApiUrl(config, 'api_key');
+            addResult('🔍 Test Preflight OPTIONS', 'En cours...', 'info');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'OPTIONS',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const corsHeaders = extractCorsHeaders(response);
+                const corsHeadersText = Object.entries(corsHeaders)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join('\n') || '(Aucun header CORS détecté)';
+
+                addResult(
+                    '✅ Preflight OPTIONS complété',
+                    `HTTP ${response.status}`,
+                    response.status < 400 ? 'success' : 'error',
+                    {
+                        url: url,
+                        httpStatus: response.status,
+                        corsHeaders: corsHeadersText
+                    }
+                );
+            } catch (error) {
+                addResult(
+                    '❌ Erreur Preflight OPTIONS',
+                    'Erreur réseau',
+                    'error',
+                    {
+                        url: url,
+                        error: error.message
+                    }
+                );
+            }
+        }
+
+        async function testQueryParam(paramName) {
+            const config = getConfig();
+            if (!config.gristUrl || !config.docId || !config.tableName || !config.apiKey) {
+                alert('Veuillez remplir tous les champs');
+                return;
+            }
+
+            const url = buildApiUrl(config, paramName);
+            const testName = paramName === 'api_key' ? '?api_key=' : '?auth=';
+            addResult(`🔍 Test GET avec ${testName}`, 'En cours...', 'info');
+
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                const corsHeaders = extractCorsHeaders(response);
+                const corsHeadersText = Object.entries(corsHeaders)
+                    .map(([k, v]) => `${k}: ${v}`)
+                    .join('\n') || '(Aucun header CORS détecté)';
+
+                let responseText = '';
+                try {
+                    responseText = await response.text();
+                    if (responseText.length > 500) {
+                        responseText = responseText.substring(0, 500) + '... (tronqué)';
+                    }
+                } catch (e) {
+                    responseText = '(Impossible de lire la réponse)';
+                }
+
+                const statusClass = response.status < 400 ? 'success' : (response.status === 401 ? 'error' : 'warning');
+                const statusText = response.status < 400 ? '✅ Succès' : (response.status === 401 ? '❌ Non authentifié (401)' : '⚠️ Erreur');
+
+                addResult(
+                    `${statusText} - GET avec ${testName}`,
+                    `HTTP ${response.status}`,
+                    statusClass,
+                    {
+                        url: url,
+                        httpStatus: response.status,
+                        corsHeaders: corsHeadersText,
+                        responseText: responseText
+                    }
+                );
+            } catch (error) {
+                addResult(
+                    `❌ Erreur GET avec ${testName}`,
+                    'Erreur réseau/CORS',
+                    'error',
+                    {
+                        url: url,
+                        error: error.message + ' (Vérifiez la console réseau pour les détails CORS)'
+                    }
+                );
+            }
+        }
+
+        function clearResults() {
+            resultsDiv.innerHTML = '<p style="color: #999; text-align: center; padding: 40px 0;">Les résultats des tests apparaîtront ici...</p>';
+        }
+
+        // Info au chargement
+        window.addEventListener('load', () => {
+            console.log('Test CORS chargé. Ouvre F12 → Réseau pour voir les requêtes et les headers CORS.');
+        });
+    </script>
+</body>
+</html>

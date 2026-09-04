@@ -6,8 +6,12 @@
   function setStatus(message, kind = 'neutral', target = $('status')) { target.textContent = message; target.className = `status ${kind}`; }
   function esc(value) { return String(value ?? '').replace(/[&<>\"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;'}[c])); }
   function urlFor(path) { return `${String(state.config.baseUrl || '').replace(/\/+$/, '')}/api/docs/${encodeURIComponent(state.config.docId)}/tables/${encodeURIComponent(state.config.tableId)}${path}`; }
-  function headers() { return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${state.config.apiKey}` }; }
-  async function targetFetch(options = {}) { let response; try { response = await fetch(urlFor('/records'), { ...options, headers: { ...headers(), ...(options.headers || {}) } }); } catch (error) { throw new Error(`Erreur réseau : ${error.message}`); } if (!response.ok) { let detail = ''; try { detail = await response.text(); } catch (_) {} throw new Error(`HTTP ${response.status} ${response.statusText}${detail ? ` — ${detail.slice(0, 300)}` : ''}`); } if (response.status === 204) return null; try { return await response.json(); } catch (_) { return null; } }
+  function targetUrl(path) {
+    const endpoint = urlFor(path);
+    const separator = endpoint.includes('?') ? '&' : '?';
+    return `${endpoint}${separator}auth=${encodeURIComponent(state.config.apiKey || '')}`;
+  }
+  async function targetFetch(options = {}) { let response; try { const { Authorization, authorization, ...extraHeaders } = options.headers || {}; response = await fetch(targetUrl('/records'), { ...options, headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'XMLHttpRequest', ...extraHeaders } }); } catch (error) { throw new Error(`Erreur réseau : ${error.message}`); } if (!response.ok) { let detail = ''; try { detail = await response.text(); } catch (_) {} throw new Error(`HTTP ${response.status} ${response.statusText}${detail ? ` — ${detail.slice(0, 300)}` : ''}`); } if (response.status === 204) return null; try { return await response.json(); } catch (_) { return null; } }
   function validConfig() { return state.config.baseUrl && state.config.docId && state.config.tableId && state.config.apiKey; }
   async function readSource() { const tableId = grist.getTable ? await grist.getTable().then(t => t && t.getTableId ? t.getTableId() : undefined) : undefined; const data = await grist.docApi.fetchTable(tableId); const columns = Object.keys(data || {}).filter(k => k !== 'id'); const rowCount = columns.length ? data[columns[0]].length : ((data && data.id) || []).length; state.source = { data, columns, rowCount, tableId: tableId || 'table actuelle' }; $('sourceTable').textContent = state.source.tableId; $('sourceRows').textContent = rowCount; }
   function recordsFromSource(mapped) { return Array.from({ length: state.source.rowCount }, (_, i) => ({ fields: Object.fromEntries(mapped.map(name => [name, state.source.data[name][i]])) })); }

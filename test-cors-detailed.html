@@ -3,331 +3,530 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test CORS Détaillé - Grist Sync</title>
+    <title>Tests CORS Détaillés - Grist Sync Connector</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             padding: 20px;
         }
+        
         .container {
-            max-width: 900px;
+            max-width: 1200px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
+        
         .header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             padding: 30px;
             text-align: center;
         }
-        .header h1 { margin-bottom: 10px; font-size: 28px; }
-        .header p { opacity: 0.9; font-size: 14px; }
+        
+        .header h1 {
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        
         .content {
             padding: 30px;
         }
-        .form-group {
-            margin-bottom: 20px;
+        
+        .section {
+            margin-bottom: 40px;
         }
+        
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #667eea;
+            font-size: 1.5em;
+        }
+        
+        .test-group {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+        
+        .test-title {
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        
+        .input-group {
+            margin-bottom: 15px;
+        }
+        
         label {
             display: block;
-            font-weight: 600;
             margin-bottom: 8px;
-            color: #333;
+            color: #555;
+            font-weight: 500;
         }
-        input, select {
+        
+        input {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 1px solid #ddd;
             border-radius: 6px;
-            font-size: 14px;
-            font-family: monospace;
-            transition: border-color 0.3s;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
         }
-        input:focus, select:focus {
+        
+        input:focus {
             outline: none;
             border-color: #667eea;
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
-        .button-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 12px;
-            margin-top: 30px;
-        }
+        
         button {
-            padding: 14px 20px;
-            border: none;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-        }
-        .btn-primary {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-        .btn-secondary {
-            background: #f5f5f5;
-            color: #333;
-            border: 2px solid #e0e0e0;
-        }
-        .btn-secondary:hover {
-            background: #efefef;
-        }
-        .results {
-            margin-top: 30px;
-            border-top: 2px solid #e0e0e0;
-            padding-top: 30px;
-        }
-        .test-result {
-            margin-bottom: 25px;
-            padding: 15px;
-            border-left: 4px solid #ddd;
-            background: #f9f9f9;
-            border-radius: 4px;
-        }
-        .test-result.success {
-            border-left-color: #4caf50;
-            background: #f1f8f6;
-        }
-        .test-result.error {
-            border-left-color: #f44336;
-            background: #fdf1f1;
-        }
-        .test-result.warning {
-            border-left-color: #ff9800;
-            background: #fff8f1;
-        }
-        .test-result h3 {
-            margin-bottom: 10px;
-            font-size: 16px;
-            color: #333;
-        }
-        .test-result p {
-            margin-bottom: 8px;
-            font-size: 13px;
-            line-height: 1.6;
-            color: #666;
-        }
-        .test-result code {
-            display: block;
-            background: white;
-            padding: 12px;
-            border-radius: 4px;
-            overflow-x: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            margin-top: 8px;
-            border: 1px solid #e0e0e0;
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-        .loading {
-            display: inline-block;
-            width: 14px;
-            height: 14px;
-            border: 2px solid #f3f3f3;
-            border-top: 2px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 20px;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
             font-weight: 600;
-            font-size: 12px;
-            margin-left: 10px;
+            font-size: 1em;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-right: 10px;
+            margin-bottom: 10px;
         }
-        .status-ok {
-            background: #4caf50;
-            color: white;
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
-        .status-error {
-            background: #f44336;
-            color: white;
+        
+        button:active {
+            transform: translateY(0);
         }
-        .status-warning {
-            background: #ff9800;
-            color: white;
+        
+        .result {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-all;
         }
-        .header-list {
-            font-size: 12px;
-            color: #666;
+        
+        .result.success {
+            border-left: 4px solid #28a745;
+            background: #f0fdf4;
+            color: #15803d;
         }
-        .header-list li {
-            margin-left: 20px;
-            margin-bottom: 4px;
+        
+        .result.error {
+            border-left: 4px solid #dc3545;
+            background: #fdf0f0;
+            color: #991b1b;
+        }
+        
+        .result.loading {
+            border-left: 4px solid #ffc107;
+            background: #fffbf0;
+            color: #92400e;
+        }
+        
+        .status-icon {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .status-icon.success {
+            background: #28a745;
+        }
+        
+        .status-icon.error {
+            background: #dc3545;
+        }
+        
+        .status-icon.loading {
+            background: #ffc107;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .info-box {
+            background: #e7f3ff;
+            border-left: 4px solid #2196F3;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            color: #1976D2;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 6px;
+            color: #856404;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>🔍 Test CORS Détaillé</h1>
-            <p>Introspection complète du chemin API Grist</p>
+            <h1>🔍 Tests CORS Détaillés</h1>
+            <p>Grist Sync Connector - Diagnostic complet</p>
         </div>
         
         <div class="content">
-            <div class="form-group">
-                <label>Instance Grist (URL)</label>
-                <input type="text" id="instance" value="https://grist.numerique.gouv.fr" placeholder="https://grist.numerique.gouv.fr">
+            <!-- Section Tests Manuels -->
+            <div class="section">
+                <h2>📋 Tests Manuels (Clé API)</h2>
+                
+                <div class="info-box">
+                    ℹ️ Ces tests vous permettent de vérifier votre accès API manuellement avec une clé API.
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Configuration</div>
+                    <div class="input-group">
+                        <label for="docId">Doc ID (ex: 97yiWFtwrJMV):</label>
+                        <input type="text" id="docId" placeholder="Entrez l'ID du document">
+                    </div>
+                    <div class="input-group">
+                        <label for="apiKey">Clé API:</label>
+                        <input type="password" id="apiKey" placeholder="Entrez votre clé API">
+                    </div>
+                    <div class="input-group">
+                        <label for="baseUrl">URL de base (ex: https://grist.numerique.gouv.fr):</label>
+                        <input type="text" id="baseUrl" placeholder="https://grist.numerique.gouv.fr">
+                    </div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 1️⃣ : Preflight OPTIONS</div>
+                    <button onclick="testPreflight()">🚀 Lancer le test Preflight</button>
+                    <div id="preflightResult" class="result"></div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 2️⃣ : Récupérer infos du document (Clé API)</div>
+                    <button onclick="testDocInfo()">🚀 Lancer le test Doc Info</button>
+                    <div id="docInfoResult" class="result"></div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 3️⃣ : Récupérer les records (Clé API)</div>
+                    <button onclick="testRecords()">🚀 Lancer le test Records</button>
+                    <div id="recordsResult" class="result"></div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label>ID du Document Source</label>
-                <input type="text" id="docId" value="97yiWFtwrJMV" placeholder="ex: 97yiWFtwrJMV">
+            
+            <!-- Section Tests avec getAccessToken() -->
+            <div class="section">
+                <h2>🔐 Tests avec getAccessToken() (Widget Grist)</h2>
+                
+                <div class="warning-box">
+                    ⚠️ Ces tests nécessitent que cette page soit chargée COMME UN WIDGET GRIST !
+                    <br><br>
+                    Pour utiliser ces tests, ajoutez cette URL comme Custom Widget dans Grist:
+                    <br><strong>https://gristgouv.github.io/grist-sync-connector/test-cors-detailed.html</strong>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 4️⃣ : Obtenir un Access Token (méthode widget)</div>
+                    <button onclick="testGetAccessToken()">🚀 Lancer le test Access Token</button>
+                    <div id="accessTokenResult" class="result"></div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 5️⃣ : Récupérer infos du document (via Access Token)</div>
+                    <button onclick="testDocInfoWithToken()">🚀 Lancer le test Doc Info avec Token</button>
+                    <div id="docInfoTokenResult" class="result"></div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 6️⃣ : Récupérer les records (via Access Token)</div>
+                    <button onclick="testRecordsWithToken()">🚀 Lancer le test Records avec Token</button>
+                    <div id="recordsTokenResult" class="result"></div>
+                </div>
+                
+                <div class="test-group">
+                    <div class="test-title">Test 7️⃣ : Lister toutes les tables (via Access Token)</div>
+                    <button onclick="testTablesWithToken()">🚀 Lancer le test Tables avec Token</button>
+                    <div id="tablesTokenResult" class="result"></div>
+                </div>
             </div>
-
-            <div class="form-group">
-                <label>Nom de la Table</label>
-                <input type="text" id="tableName" value="Table1" placeholder="ex: Table1">
-            </div>
-
-            <div class="form-group">
-                <label>Clé API (compte de service)</label>
-                <input type="password" id="apiKey" placeholder="Colle ta clé API ici (pas visible)">
-            </div>
-
-            <div class="button-group">
-                <button class="btn-primary" onclick="testGetDocInfo()">
-                    📋 1. Infos Document
-                </button>
-                <button class="btn-primary" onclick="testGetTables()">
-                    📊 2. Lister Tables
-                </button>
-                <button class="btn-primary" onclick="testGetTableRecords()">
-                    📈 3. Récupérer Enregistrements
-                </button>
-                <button class="btn-secondary" onclick="clearResults()">
-                    🗑️ Effacer Résultats
-                </button>
-            </div>
-
-            <div class="results" id="results" style="display: none;">
-                <h2>📊 Résultats</h2>
-                <div id="resultsList"></div>
+            
+            <!-- Résumé -->
+            <div class="section">
+                <h2>📊 Résumé des résultats</h2>
+                <div id="summary" class="test-group">
+                    <p>Lancez les tests pour voir le résumé ici...</p>
+                </div>
             </div>
         </div>
     </div>
-
+    
+    <script src="https://docs.getgrist.com/grist-api.js"></script>
     <script>
-        function addResult(title, status, details) {
-            const resultsList = document.getElementById('resultsList');
-            const resultsContainer = document.getElementById('results');
-            resultsContainer.style.display = 'block';
-
-            const resultDiv = document.createElement('div');
-            resultDiv.className = `test-result ${status}`;
+        let testResults = {};
+        
+        function setStatus(elementId, status, message) {
+            const element = document.getElementById(elementId);
+            element.className = `result ${status}`;
+            element.textContent = message;
             
-            let statusBadge = '';
-            if (status === 'success') statusBadge = '<span class="status-badge status-ok">✓ Succès</span>';
-            else if (status === 'error') statusBadge = '<span class="status-badge status-error">✗ Erreur</span>';
-            else if (status === 'warning') statusBadge = '<span class="status-badge status-warning">⚠ Attention</span>';
-
-            resultDiv.innerHTML = `
-                <h3>${title}${statusBadge}</h3>
-                ${details}
-            `;
-            resultsList.appendChild(resultDiv);
+            // Tracker les résultats
+            testResults[elementId] = {status, message};
+            updateSummary();
         }
-
-        function clearResults() {
-            const resultsList = document.getElementById('resultsList');
-            resultsList.innerHTML = '';
-            document.getElementById('results').style.display = 'none';
-        }
-
-        async function makeRequest(method, url, apiKey) {
-            const fullUrl = apiKey ? `${url}?api_key=${encodeURIComponent(apiKey)}` : url;
+        
+        function updateSummary() {
+            const summary = document.getElementById('summary');
+            let html = '<strong>État des tests:</strong><br><br>';
             
-            let details = `<p><strong>URL complète :</strong></p><code>${fullUrl}</code>`;
-            details += `<p style="margin-top: 10px;"><strong>Méthode :</strong> ${method}</p>`;
-
+            Object.entries(testResults).forEach(([id, result]) => {
+                const icon = result.status === 'success' ? '✅' : result.status === 'error' ? '❌' : '⏳';
+                html += `${icon} ${id}: ${result.status}<br>`;
+            });
+            
+            summary.innerHTML = html;
+        }
+        
+        // ======================================
+        // TESTS MANUELS (Clé API)
+        // ======================================
+        
+        async function testPreflight() {
+            const baseUrl = document.getElementById('baseUrl').value;
+            const docId = document.getElementById('docId').value;
+            
+            if (!baseUrl || !docId) {
+                setStatus('preflightResult', 'error', '❌ Veuillez remplir l\'URL de base et l\'ID du document');
+                return;
+            }
+            
+            setStatus('preflightResult', 'loading', '⏳ Test en cours...');
+            
             try {
-                const response = await fetch(fullUrl, {
-                    method: method,
+                const response = await fetch(`${baseUrl}/o/docs/api/docs/${docId}/tables`, {
+                    method: 'OPTIONS',
                     headers: {
-                        'Content-Type': 'application/json',
+                        'Access-Control-Request-Method': 'GET',
+                        'Access-Control-Request-Headers': 'authorization'
                     }
                 });
-
-                const contentType = response.headers.get('content-type');
-                let body = '';
-                if (contentType && contentType.includes('application/json')) {
-                    body = await response.json();
-                } else {
-                    body = await response.text();
-                }
-
-                details += `<p style="margin-top: 10px;"><strong>Code HTTP :</strong> ${response.status}</p>`;
-                details += `<p><strong>Headers CORS :</strong></p><ul class="header-list">`;
-                details += `<li>Access-Control-Allow-Origin: ${response.headers.get('access-control-allow-origin') || 'N/A'}</li>`;
-                details += `<li>Access-Control-Allow-Headers: ${response.headers.get('access-control-allow-headers') || 'N/A'}</li>`;
-                details += `<li>Access-Control-Allow-Methods: ${response.headers.get('access-control-allow-methods') || 'N/A'}</li>`;
-                details += `</ul>`;
                 
-                if (response.ok) {
-                    details += `<p style="margin-top: 10px;"><strong>Réponse (body) :</strong></p><code>${JSON.stringify(body, null, 2)}</code>`;
-                    addResult(arguments[3], 'success', details);
-                    return { success: true, data: body, status: response.status };
-                } else {
-                    details += `<p style="margin-top: 10px;"><strong>Erreur :</strong></p><code>${typeof body === 'string' ? body : JSON.stringify(body, null, 2)}</code>`;
-                    addResult(arguments[3], 'error', details);
-                    return { success: false, error: body, status: response.status };
-                }
+                const corsHeaders = {
+                    'Access-Control-Allow-Origin': response.headers.get('Access-Control-Allow-Origin') || 'N/A',
+                    'Access-Control-Allow-Methods': response.headers.get('Access-Control-Allow-Methods') || 'N/A',
+                    'Access-Control-Allow-Headers': response.headers.get('Access-Control-Allow-Headers') || 'N/A'
+                };
+                
+                const message = `✅ Preflight réussi !
+                
+Code HTTP: ${response.status}
+Headers CORS:
+${Object.entries(corsHeaders).map(([k, v]) => `  ${k}: ${v}`).join('\n')}`;
+                
+                setStatus('preflightResult', response.status === 200 ? 'success' : 'error', message);
             } catch (err) {
-                details += `<p style="margin-top: 10px;"><strong>Exception réseau :</strong></p><code>${err.message}</code>`;
-                addResult(arguments[3], 'error', details);
-                return { success: false, error: err.message };
+                setStatus('preflightResult', 'error', `❌ Erreur: ${err.message}`);
             }
         }
-
-        async function testGetDocInfo() {
-            const instance = document.getElementById('instance').value;
+        
+        async function testDocInfo() {
+            const baseUrl = document.getElementById('baseUrl').value;
             const docId = document.getElementById('docId').value;
             const apiKey = document.getElementById('apiKey').value;
-
-            clearResults();
-            const url = `${instance}/api/docs/${docId}`;
-            await makeRequest('GET', url, apiKey, '📋 Récupérer infos du document');
+            
+            if (!baseUrl || !docId || !apiKey) {
+                setStatus('docInfoResult', 'error', '❌ Veuillez remplir tous les champs');
+                return;
+            }
+            
+            setStatus('docInfoResult', 'loading', '⏳ Récupération des infos du document...');
+            
+            try {
+                const url = `${baseUrl}/o/docs/api/docs/${docId}?api_key=${encodeURIComponent(apiKey)}`;
+                const response = await fetch(url, {method: 'GET'});
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('docInfoResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    setStatus('docInfoResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                setStatus('docInfoResult', 'error', `❌ Erreur réseau: ${err.message}`);
+            }
         }
-
-        async function testGetTables() {
-            const instance = document.getElementById('instance').value;
+        
+        async function testRecords() {
+            const baseUrl = document.getElementById('baseUrl').value;
             const docId = document.getElementById('docId').value;
             const apiKey = document.getElementById('apiKey').value;
-
-            clearResults();
-            const url = `${instance}/api/docs/${docId}/tables`;
-            await makeRequest('GET', url, apiKey, '📊 Lister toutes les tables');
+            
+            if (!baseUrl || !docId || !apiKey) {
+                setStatus('recordsResult', 'error', '❌ Veuillez remplir tous les champs');
+                return;
+            }
+            
+            setStatus('recordsResult', 'loading', '⏳ Récupération des records...');
+            
+            try {
+                const url = `${baseUrl}/o/docs/api/docs/${docId}/tables/Table1/records?api_key=${encodeURIComponent(apiKey)}`;
+                const response = await fetch(url, {method: 'GET'});
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('recordsResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    setStatus('recordsResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                setStatus('recordsResult', 'error', `❌ Erreur réseau: ${err.message}`);
+            }
         }
+        
+        // ======================================
+        // TESTS AVEC getAccessToken()
+        // ======================================
+        
+        async function testGetAccessToken() {
+            setStatus('accessTokenResult', 'loading', '⏳ Initialisation widget Grist...');
+            
+            try {
+                // Attendre que grist soit disponible
+                if (!window.grist) {
+                    throw new Error('grist.widget non disponible - cette page doit être chargée comme un widget Grist');
+                }
+                
+                const {token, baseUrl} = await grist.docApi.getAccessToken({readOnly: false});
+                
+                const message = `✅ Token obtenu avec succès!
 
-        async function testGetTableRecords() {
-            const instance = document.getElementById('instance').value;
-            const docId = document.getElementById('docId').value;
-            const tableName = document.getElementById('tableName').value;
-            const apiKey = document.getElementById('apiKey').value;
+Token (premiers 50 chars): ${token.substring(0, 50)}...
+Base URL: ${baseUrl}
 
-            clearResults();
-            const url = `${instance}/api/docs/${docId}/tables/${encodeURIComponent(tableName)}/records`;
-            await makeRequest('GET', url, apiKey, '📈 Récupérer enregistrements de la table');
+ℹ️ Ce token peut être utilisé pour:
+- Récupérer les données du document
+- Créer/modifier les records
+- Accéder à la table courante`;
+                
+                setStatus('accessTokenResult', 'success', message);
+                
+                // Sauvegarder le token pour les autres tests
+                window.lastToken = token;
+                window.lastBaseUrl = baseUrl;
+            } catch (err) {
+                setStatus('accessTokenResult', 'error', `❌ Erreur: ${err.message}\n\nAssurez-vous que cette page est chargée comme un Custom Widget dans Grist.`);
+            }
         }
+        
+        async function testDocInfoWithToken() {
+            setStatus('docInfoTokenResult', 'loading', '⏳ Récupération infos document...');
+            
+            try {
+                if (!window.lastToken || !window.lastBaseUrl) {
+                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
+                }
+                
+                const url = `${window.lastBaseUrl}/tables?auth=${encodeURIComponent(window.lastToken)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    setStatus('docInfoTokenResult', 'success', `✅ Succès!\n\n${JSON.stringify(data, null, 2)}`);
+                } else {
+                    setStatus('docInfoTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                setStatus('docInfoTokenResult', 'error', `❌ Erreur: ${err.message}`);
+            }
+        }
+        
+        async function testRecordsWithToken() {
+            setStatus('recordsTokenResult', 'loading', '⏳ Récupération des records...');
+            
+            try {
+                if (!window.lastToken || !window.lastBaseUrl) {
+                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
+                }
+                
+                // Essayer de récupérer les records de la table courante
+                const url = `${window.lastBaseUrl}/records?auth=${encodeURIComponent(window.lastToken)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const recordCount = data.records ? data.records.length : 0;
+                    const message = `✅ Succès! ${recordCount} records récupérés\n\n${JSON.stringify(data, null, 2)}`;
+                    setStatus('recordsTokenResult', 'success', message);
+                } else {
+                    setStatus('recordsTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                setStatus('recordsTokenResult', 'error', `❌ Erreur: ${err.message}`);
+            }
+        }
+        
+        async function testTablesWithToken() {
+            setStatus('tablesTokenResult', 'loading', '⏳ Récupération des tables...');
+            
+            try {
+                if (!window.lastToken || !window.lastBaseUrl) {
+                    throw new Error('Lancez d\'abord le Test 4 (Access Token)');
+                }
+                
+                const url = `${window.lastBaseUrl}/tables?auth=${encodeURIComponent(window.lastToken)}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tableCount = data.tables ? data.tables.length : 0;
+                    const tableNames = data.tables ? data.tables.map(t => t.id).join(', ') : 'N/A';
+                    const message = `✅ Succès! ${tableCount} table(s) trouvée(s)\n\nTables: ${tableNames}\n\n${JSON.stringify(data, null, 2)}`;
+                    setStatus('tablesTokenResult', 'success', message);
+                } else {
+                    setStatus('tablesTokenResult', 'error', `❌ Erreur ${response.status}\n\n${JSON.stringify(data, null, 2)}`);
+                }
+            } catch (err) {
+                setStatus('tablesTokenResult', 'error', `❌ Erreur: ${err.message}`);
+            }
+        }
+        
+        // Initialiser quand la page charge
+        window.addEventListener('load', () => {
+            console.log('Tests CORS chargés. Grist disponible?', !!window.grist);
+        });
     </script>
 </body>
 </html>
